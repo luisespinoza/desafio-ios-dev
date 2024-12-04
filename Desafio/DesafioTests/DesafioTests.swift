@@ -111,4 +111,14 @@ final class DesafioTests: XCTestCase {
         }
         waitForExpectations(timeout: 2)
     }
+    
+//    func testPokemonsViewModelFetchesPokemons() throws {
+//        let dataManager = MockDataManager(state: .notReady, result: .success)
+//        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+//        let expectation = self.expectation(description: "Pokemons are fetched")
+//        
+//        pokemonsViewModel.onViewDidLoad()
+//        
+//        
+//    }
 }
