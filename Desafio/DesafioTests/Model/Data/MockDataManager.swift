@@ -6,11 +6,33 @@
 //
 @testable import Desafio
 
-class MockDataManager: DataManager {
-    var isCacheReadyCalled: Bool = false
+enum MockDataManagerCacheState {
+    case ready
+    case notReady
+}
+
+class MockDataManager: CacheManager {
+    let cacheState: MockDataManagerCacheState
+
+    var isCacheReadyCalled = false
+    var cacheCalled = false
+
+    init(cacheState: MockDataManagerCacheState) {
+        self.cacheState = cacheState
+    }
     
-    func isCacheReady() -> Bool {
+    func isReady() -> Bool {
         isCacheReadyCalled = true
-        return false
+        
+        switch cacheState {
+        case .ready:
+            return true
+        case .notReady:
+            return false
+        }
+    }
+    
+    func cache() {
+        cacheCalled = true
     }
 }

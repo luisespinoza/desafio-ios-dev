@@ -19,15 +19,15 @@ final class PokemonsViewModel {
 //            }
 //        }
 //    }
-    let dataManager: DataManager
+    let dataManager: CacheManager
     
-    init(dataManager: DataManager) {
+    init(dataManager: CacheManager) {
         self.dataManager = dataManager
     }
     
     func onViewDidLoad() {
-        if dataManager.isCacheReady() {
-            
+        if !dataManager.isReady() {
+            dataManager.cache()
         }
     }
 }
