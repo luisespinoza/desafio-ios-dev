@@ -20,6 +20,7 @@ final class PokemonsViewModel {
 //        }
 //    }
     let dataManager: CacheManager
+    var isLoading = false
     
     init(dataManager: CacheManager) {
         self.dataManager = dataManager
@@ -27,7 +28,10 @@ final class PokemonsViewModel {
     
     func onViewDidLoad() {
         if !dataManager.isReady() {
-            dataManager.cache()
+            isLoading = true
+            dataManager.cache { [weak self] result in
+                self?.isLoading = false
+            }
         }
     }
 }
