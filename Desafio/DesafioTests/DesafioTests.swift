@@ -21,7 +21,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelChecksIfCacheIsReady() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady)
-        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -33,7 +33,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelCallsToCachePokemons() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady)
-        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -45,7 +45,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelDoesNotCallToCachePokemons() throws {
         // Given
         let dataManager = MockDataManager(state: .ready)
-        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -57,7 +57,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelIsLoadingWhenCache() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady)
-        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -69,7 +69,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelNotLoadingWhenReady() throws {
         // Given
         let dataManager = MockDataManager(state: .ready)
-        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -81,7 +81,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelEndsLoadingOnSuccess() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady, result: .success)
-        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
         let expectation = self.expectation(description: "Loading completes")
         
         // When
@@ -98,7 +98,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelEndsLoadingOnFailure() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady, result: .failure)
-        let pokemonsViewModel = PokemonsViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
         let expectation = self.expectation(description: "Loading completes")
         
         // When

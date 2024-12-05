@@ -1,11 +1,11 @@
 //
-//  PokemonsViewModel.swift
+//  PokemonListViewModel.swift
 //  Desafio
 //
 //  Created by Luis Enrique Espinoza Severino on 03-12-24.
 //
 
-final class PokemonsViewModel {
+final class PokemonListViewModel {
 //    @Published var pokemons: [Pokemon] = []
 //    
 //    init() {

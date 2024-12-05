@@ -28,7 +28,10 @@ final class CacheManagerImpl: CacheManager {
     }
     
     func cache(onComplete: @escaping (Result<Void, CacheError>) -> Void) {
-        
+        // fetch Pokemons
+        fetchPokemons { result in
+            print("Fetched pokemons: \(result?.results ?? [])")
+        }
     }
     
     func cachedPokemons(onComplete: @escaping (Result<[Pokemon], CacheError>) -> Void) {
