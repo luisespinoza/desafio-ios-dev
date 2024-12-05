@@ -16,4 +16,3 @@ class PokemonListViewController: UIViewController {
         viewModel?.onViewDidLoad()
     }
 }
-

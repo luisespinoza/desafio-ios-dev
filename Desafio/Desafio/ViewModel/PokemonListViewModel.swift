@@ -22,8 +22,8 @@ final class PokemonListViewModel {
     let cacheManager: CacheManager
     var isLoading = false
     
-    init(dataManager: CacheManager) {
-        self.cacheManager = dataManager
+    init(cacheManager: CacheManager) {
+        self.cacheManager = cacheManager
     }
     
     func onViewDidLoad() {

@@ -19,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         let rootViewController = PokemonListViewController()
         let cacheManager = CacheManagerImpl(persistentContainer: persistentContainer)
-        let viewModel = PokemonListViewModel(dataManager: cacheManager)
+        let viewModel = PokemonListViewModel(cacheManager: cacheManager)
         rootViewController.viewModel = viewModel
         window?.rootViewController = rootViewController
         window?.makeKeyAndVisible()
