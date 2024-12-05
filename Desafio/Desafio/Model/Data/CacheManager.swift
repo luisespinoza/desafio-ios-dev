@@ -17,4 +17,5 @@ enum CacheError: Error {
 protocol CacheManager {
     func isReady() -> Bool
     func cache(onComplete: @escaping (Result<Void, CacheError>) -> Void)
+    func pokemons(onComplete: @escaping (Result<[Pokemon], CacheError>) -> Void)
 }

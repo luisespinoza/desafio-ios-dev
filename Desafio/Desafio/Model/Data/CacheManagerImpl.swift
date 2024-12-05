@@ -48,7 +48,7 @@ final class CacheManagerImpl: CacheManager {
         }
     }
     
-    func cachedPokemons(onComplete: @escaping (Result<[Pokemon], CacheError>) -> Void) {
+    func pokemons(onComplete: @escaping (Result<[Pokemon], CacheError>) -> Void) {
         let context = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<Pokemon> = Pokemon.fetchRequest()
         fetchRequest.fetchLimit = cacheSize
