@@ -8,6 +8,7 @@
 enum CacheError: Error {
     case unreacheable
     case cannotSave
+    case cannotLoad
 }
 
 protocol CacheManager {
