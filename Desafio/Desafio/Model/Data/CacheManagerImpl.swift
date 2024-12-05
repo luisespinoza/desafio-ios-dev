@@ -55,14 +55,14 @@ final class CacheManagerImpl: CacheManager {
                 return
             }
             
-            let response = try? JSONDecoder().decode([PokemonData].self, from: data)
-            guard let response else {
+            do {
+                let response = try JSONDecoder().decode(PokemonListResponse.self, from: data)
+                completion(response)
+            } catch {
+                print("Failed to decode data: \(error)")
                 completion(nil)
-                return
             }
             
-            let pokemonListResponse = PokemonListResponse(results: response)
-            completion(pokemonListResponse)
         }.resume()
     }
 }
