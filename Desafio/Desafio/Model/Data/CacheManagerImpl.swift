@@ -81,12 +81,22 @@ final class CacheManagerImpl: CacheManager {
     }
     
     private func fetchPokemons(from list: [PokemonListItem]) {
+        let dispatchGroup = DispatchGroup()
         for (index, pokemonData) in list.enumerated() {
             let delay = Double(index) * fetchDelay
+            dispatchGroup.enter()
             DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.fetchPokemon(from: pokemonData.url) { result in
+                    dispatchGroup.leave()
                     print(result)
                 }
+            }
+        }
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            do {
+                try self?.backgroundContext.save()
+            } catch {
+                print("Failed to save data: \(error)")
             }
         }
     }
