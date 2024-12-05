@@ -19,17 +19,17 @@ final class PokemonsViewModel {
 //            }
 //        }
 //    }
-    let dataManager: CacheManager
+    let cacheManager: CacheManager
     var isLoading = false
     
     init(dataManager: CacheManager) {
-        self.dataManager = dataManager
+        self.cacheManager = dataManager
     }
     
     func onViewDidLoad() {
-        if !dataManager.isReady() {
+        if !cacheManager.isReady() {
             isLoading = true
-            dataManager.cache { [weak self] result in
+            cacheManager.cache { [weak self] result in
                 self?.isLoading = false
             }
         }
