@@ -9,6 +9,9 @@ enum CacheError: Error {
     case unreacheable
     case cannotSave
     case cannotLoad
+    case noResults
+    case invalidUrl
+    case parsingError
 }
 
 protocol CacheManager {

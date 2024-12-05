@@ -6,5 +6,5 @@
 //
 
 struct PokemonListResponse: Codable {
-    let results: [PokemonData]
+    let results: [PokemonListItem]
 }

@@ -10,6 +10,8 @@ import CoreData
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    private let pokemonCacheSize: Int = 151
+    
     var window: UIWindow?
 
     func application(
@@ -18,7 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         window = UIWindow(frame: UIScreen.main.bounds)
         let rootViewController = PokemonListViewController()
-        let cacheManager = CacheManagerImpl(persistentContainer: persistentContainer)
+        let cacheManager = CacheManagerImpl(
+            persistentContainer: persistentContainer,
+            cacheSize: pokemonCacheSize
+        )
         let viewModel = PokemonListViewModel(cacheManager: cacheManager)
         rootViewController.viewModel = viewModel
         window?.rootViewController = rootViewController
