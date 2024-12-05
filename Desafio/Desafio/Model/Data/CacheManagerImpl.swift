@@ -44,7 +44,7 @@ final class CacheManagerImpl: CacheManager {
                 onComplete(.failure(.noResults))
                 return
             }
-            self?.fetchPokemons(from: list)
+            self?.fetchPokemons(from: list, completion: onComplete)
         }
     }
     
@@ -80,7 +80,7 @@ final class CacheManagerImpl: CacheManager {
         }.resume()
     }
     
-    private func fetchPokemons(from list: [PokemonListItem]) {
+    private func fetchPokemons(from list: [PokemonListItem], completion: @escaping (Result<Void, CacheError>) -> Void) {
         let dispatchGroup = DispatchGroup()
         for (index, pokemonData) in list.enumerated() {
             let delay = Double(index) * fetchDelay
@@ -88,15 +88,16 @@ final class CacheManagerImpl: CacheManager {
             DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.fetchPokemon(from: pokemonData.url) { result in
                     dispatchGroup.leave()
-                    print(result)
                 }
             }
         }
         dispatchGroup.notify(queue: .main) { [weak self] in
             do {
                 try self?.backgroundContext.save()
+                completion(.success(()))
             } catch {
                 print("Failed to save data: \(error)")
+                completion(.failure(.cannotSave))
             }
         }
     }

@@ -6,21 +6,8 @@
 //
 
 final class PokemonListViewModel {
-//    @Published var pokemons: [Pokemon] = []
-//    
-//    init() {
-//        fetchPokemons()
-//    }
-//    
-//    private func fetchPokemons() {
-//        PokemonService.fetchPokemons { result in
-//            switch result {
-//                
-//            }
-//        }
-//    }
     let cacheManager: CacheManager
-    var isLoading = false
+    var isLoading: ((Bool) -> Void)?
     
     init(cacheManager: CacheManager) {
         self.cacheManager = cacheManager
@@ -28,9 +15,9 @@ final class PokemonListViewModel {
     
     func onViewDidLoad() {
         if !cacheManager.isReady() {
-            isLoading = true
+            isLoading?(true)
             cacheManager.cache { [weak self] result in
-                self?.isLoading = false
+                self?.isLoading?(false)
             }
         }
     }
