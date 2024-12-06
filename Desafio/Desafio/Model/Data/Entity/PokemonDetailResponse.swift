@@ -12,5 +12,4 @@ struct PokemonDetailResponse: Codable {
     let weight: Int
     let moves: [ApiMoveListItem]
     let types: [ApiPokemonTypeListItem]
-//    let sprites: Sprites
 }
