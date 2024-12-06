@@ -148,7 +148,8 @@ final class CacheManagerImpl: CacheManager {
                 
                 pokemonDispatchGroup.enter()
                 self.fetchPokemonEvolutions(
-                    pokemonID: response.id
+                    pokemonID: response.id,
+                    speciesURL: response.species.url
                 ) { _ in
                     pokemonDispatchGroup.leave()
                 }
@@ -180,34 +181,46 @@ final class CacheManagerImpl: CacheManager {
         }.resume()
     }
     
-    func fetchPokemonEvolutions(pokemonID: Int, completion: @escaping (Result<Void, CacheError>) -> Void) {
-        let evolutionChainURL = "https://pokeapi.co/api/v2/evolution-chain/\(pokemonID)"
-        print(evolutionChainURL)
-        guard let url = URL(string: evolutionChainURL) else {
+    func fetchPokemonEvolutions(pokemonID: Int, speciesURL: String, completion: @escaping (Result<Void, CacheError>) -> Void) {
+        print(speciesURL)
+        guard let speciesURL = URL(string: speciesURL) else {
             completion(.failure(.invalidUrl))
             return
         }
-        URLSession.shared.dataTask(with: url) {[weak self] data, _, _ in
-            guard let self else { return }
+        URLSession.shared.dataTask(with: speciesURL) { data, _, _ in
             guard let data = data,
-                  let evolutionChain = try? JSONDecoder().decode(ApiEvolutionChain.self, from: data)
-            else {
+                  let speciesResponse = try? JSONDecoder().decode(ApiSpeciesResponse.self, from: data) else {
                 completion(.failure(.parsingError))
                 return
             }
             
-            var evolutions: [String] = []
-            self.processEvolutionChain(evolutionChain.chain, evolutions: &evolutions)
-            
-            self.fetchPokemon(by: pokemonID) { result in
-                switch result {
-                case .success(let pokemon):
-                    pokemon.evolutions = evolutions as NSArray
-                    completion(.success(()))
-                case .failure(let error):
-                    completion(.failure(error))
-                }
+            print(speciesResponse.evolutionChain.url)
+            guard let url = URL(string: speciesResponse.evolutionChain.url) else {
+                completion(.failure(.invalidUrl))
+                return
             }
+            URLSession.shared.dataTask(with: url) {[weak self] data, _, _ in
+                guard let self else { return }
+                guard let data = data,
+                      let evolutionChain = try? JSONDecoder().decode(ApiEvolutionChain.self, from: data)
+                else {
+                    completion(.failure(.parsingError))
+                    return
+                }
+                
+                var evolutions: [String] = []
+                self.processEvolutionChain(evolutionChain.chain, evolutions: &evolutions)
+                
+                self.fetchPokemon(by: pokemonID) { result in
+                    switch result {
+                    case .success(let pokemon):
+                        pokemon.evolutions = evolutions as NSArray
+                        completion(.success(()))
+                    case .failure(let error):
+                        completion(.failure(error))
+                    }
+                }
+            }.resume()
         }.resume()
     }
     

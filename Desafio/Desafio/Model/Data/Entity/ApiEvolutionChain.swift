@@ -6,5 +6,6 @@
 //
 
 struct ApiEvolutionChain: Codable {
+    let id: Int
     let chain: ApiChain
 }
