@@ -87,25 +87,21 @@ final class CacheManagerImpl: CacheManager {
         }.resume()
     }
     
-    private func fetchPokemons(from list: [ApiPokemonListItem], completion: @escaping (Result<Void, CacheError>) -> Void) {
-        let pokemonListDispatchGroup = DispatchGroup()
-        for (index, pokemonData) in list.enumerated() {
-            let delay = Double(index) * fetchDelay
-            pokemonListDispatchGroup.enter()
-            DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
-                self?.fetchPokemon(from: pokemonData.url) { result in
-                    pokemonListDispatchGroup.leave()
-                }
-            }
-        }
-        pokemonListDispatchGroup.notify(queue: .main) { [weak self] in
+    private func fetchPokemons(from list: [ApiPokemonListItem], index: Int = 0, completion: @escaping (Result<Void, CacheError>) -> Void) {
+        guard index < list.count else {
             do {
-                try self?.backgroundContext.save()
+                try self.backgroundContext.save()
+                print("Saved data")
                 completion(.success(()))
             } catch {
                 print("Failed to save data: \(error)")
                 completion(.failure(.cannotSave))
             }
+            return
+        }
+        let pokemonData = list[index]
+        fetchPokemon(from: pokemonData.url) { [weak self] result in
+            self?.fetchPokemons(from: list, index: index + 1, completion: completion)
         }
     }
     
@@ -115,11 +111,8 @@ final class CacheManagerImpl: CacheManager {
             completion(.failure(.invalidUrl))
             return
         }
-        print(url)
         let pokemonDispatchGroup = DispatchGroup()
-        pokemonDispatchGroup.notify(queue: .global(qos: .default)) {
-            completion(.success(()))
-        }
+
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let self else { return }
             guard let data = data else {
@@ -137,6 +130,10 @@ final class CacheManagerImpl: CacheManager {
                         response,
                         entity: pokemonEntity
                     )
+                }
+                
+                pokemonDispatchGroup.notify(queue: .main) {
+                    completion(.success(()))
                 }
                 
                 pokemonDispatchGroup.enter()
@@ -162,7 +159,6 @@ final class CacheManagerImpl: CacheManager {
     
     private func fetchPokemonImage(pokemonID: Int, completion: @escaping (Result<Void, CacheError>) -> Void) {
         let imageUrlString = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(pokemonID).png"
-        print(imageUrlString)
         guard let url = URL(string: imageUrlString) else {
             completion(.failure(.invalidUrl))
             return
@@ -182,7 +178,6 @@ final class CacheManagerImpl: CacheManager {
     }
     
     func fetchPokemonEvolutions(pokemonID: Int, speciesURL: String, completion: @escaping (Result<Void, CacheError>) -> Void) {
-        print(speciesURL)
         guard let speciesURL = URL(string: speciesURL) else {
             completion(.failure(.invalidUrl))
             return
@@ -194,7 +189,6 @@ final class CacheManagerImpl: CacheManager {
                 return
             }
             
-            print(speciesResponse.evolutionChain.url)
             guard let url = URL(string: speciesResponse.evolutionChain.url) else {
                 completion(.failure(.invalidUrl))
                 return
@@ -231,7 +225,7 @@ final class CacheManagerImpl: CacheManager {
              fetchRequest.fetchLimit = 1
              
              do {
-                 let results = try backgroundContext.fetch(fetchRequest)
+                 let results = try self.backgroundContext.fetch(fetchRequest)
                  if let pokemon = results.first {
                      completion(.success(pokemon))
                  } else {
