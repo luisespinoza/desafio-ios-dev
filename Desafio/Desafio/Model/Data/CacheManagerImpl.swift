@@ -11,6 +11,7 @@ final class CacheManagerImpl: CacheManager {
     private let fetchDelay: TimeInterval = 0.1
     private let persistentContainer: NSPersistentContainer
     private let cacheSize: Int
+    private var cachedPokemons: [Pokemon]?
     
     private lazy var backgroundContext: NSManagedObjectContext = {
         let context = persistentContainer.newBackgroundContext()
@@ -49,12 +50,17 @@ final class CacheManagerImpl: CacheManager {
     }
     
     func pokemons() -> [Pokemon]? {
+        if let cachedPokemons = cachedPokemons {
+            return cachedPokemons
+        }
+        
         let context = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<Pokemon> = Pokemon.fetchRequest()
         fetchRequest.fetchLimit = cacheSize
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
         do {
             let pokemons = try context.fetch(fetchRequest)
+            cachedPokemons = pokemons
             return pokemons
         } catch {
             print("Failed to fetch data: \(error)")
