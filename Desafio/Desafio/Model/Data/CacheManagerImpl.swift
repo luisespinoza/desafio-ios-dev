@@ -8,7 +8,7 @@
 import CoreData
 
 final class CacheManagerImpl: CacheManager {
-    private let fetchDelay: TimeInterval = 0.1
+    private let fetchDelay: TimeInterval = 0.2
     private let persistentContainer: NSPersistentContainer
     private let cacheSize: Int
     private var cachedPokemons: [Pokemon]?
@@ -88,17 +88,17 @@ final class CacheManagerImpl: CacheManager {
     }
     
     private func fetchPokemons(from list: [PokemonListItem], completion: @escaping (Result<Void, CacheError>) -> Void) {
-        let dispatchGroup = DispatchGroup()
+        let pokemonListDispatchGroup = DispatchGroup()
         for (index, pokemonData) in list.enumerated() {
             let delay = Double(index) * fetchDelay
-            dispatchGroup.enter()
+            pokemonListDispatchGroup.enter()
             DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.fetchPokemon(from: pokemonData.url) { result in
-                    dispatchGroup.leave()
+                    pokemonListDispatchGroup.leave()
                 }
             }
         }
-        dispatchGroup.notify(queue: .main) { [weak self] in
+        pokemonListDispatchGroup.notify(queue: .main) { [weak self] in
             do {
                 try self?.backgroundContext.save()
                 completion(.success(()))
@@ -109,16 +109,19 @@ final class CacheManagerImpl: CacheManager {
         }
     }
     
-    private func fetchPokemon(from url: String, completion: @escaping (Result<Pokemon, CacheError>) -> Void) {
+    private func fetchPokemon(from url: String, completion: @escaping (Result<Void, CacheError>) -> Void) {
         
         guard let url = URL(string: url) else {
             completion(.failure(.invalidUrl))
             return
         }
-        
+        print(url)
+        let pokemonDispatchGroup = DispatchGroup()
+        pokemonDispatchGroup.notify(queue: .global(qos: .default)) {
+            completion(.success(()))
+        }
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let self else { return }
-            
             guard let data = data else {
                 completion(.failure(.noResults))
                 return
@@ -126,38 +129,28 @@ final class CacheManagerImpl: CacheManager {
             
             do {
                 let response = try JSONDecoder().decode(PokemonDetailResponse.self, from: data)
+                self.backgroundContext.performAndWait { [weak self] in
+                    guard let self else { return }
+                    let pokemonEntity = Pokemon(context: self.backgroundContext)
+                    let mapper = DataMapper()
+                    mapper.dataToEntity(
+                        response,
+                        entity: pokemonEntity
+                    )
+                }
+                
+                pokemonDispatchGroup.enter()
                 self.fetchPokemonImage(
                     pokemonID: response.id
-                ) { [weak self] imageData in
-                    guard let self else { return }
-                    guard let imageData else {
-                        completion(.failure(.invalidImageData))
-                        return
-                    }
-                    
-                    self.fetchEvolutions(
-                        pokemonID: response.id
-                    ) { [weak self] evolutionData in
-                        guard let self else { return }
-                        guard let evolutionData else {
-                            completion(.failure(.invalidEvolutions))
-                            return
-                        }
-                        
-                        self.backgroundContext.performAndWait { [weak self] in
-                            guard let self else { return }
-                            let pokemonEntity = Pokemon(context: self.backgroundContext)
-                            let mapper = DataMapper()
-                            mapper.dataToEntity(
-                                response,
-                                evolutions: evolutionData,
-                                imageData: imageData,
-                                entity: pokemonEntity
-                            )
-                            completion(.success(pokemonEntity))
-                        }
-                        
-                    }
+                ) { _ in
+                    pokemonDispatchGroup.leave()
+                }
+                
+                pokemonDispatchGroup.enter()
+                self.fetchPokemonEvolutions(
+                    pokemonID: response.id
+                ) { _ in
+                    pokemonDispatchGroup.leave()
                 }
             } catch {
                 print("Failed to decode data: \(error)")
@@ -166,24 +159,32 @@ final class CacheManagerImpl: CacheManager {
         }.resume()
     }
     
-    private func fetchPokemonImage(pokemonID: Int, completion: @escaping (Data?) -> Void) {
+    private func fetchPokemonImage(pokemonID: Int, completion: @escaping (Result<Void, CacheError>) -> Void) {
         let imageUrlString = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(pokemonID).png"
         print(imageUrlString)
         guard let url = URL(string: imageUrlString) else {
-            completion(nil)
+            completion(.failure(.invalidUrl))
             return
         }
 
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            completion(data)
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            self?.fetchPokemon(by: pokemonID) { result in
+                switch result {
+                case .success(let pokemon):
+                    pokemon.image = data
+                    completion(.success(()))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
         }.resume()
     }
     
-    func fetchEvolutions(pokemonID: Int, completion: @escaping ([String]?) -> Void) {
+    func fetchPokemonEvolutions(pokemonID: Int, completion: @escaping (Result<Void, CacheError>) -> Void) {
         let evolutionChainURL = "https://pokeapi.co/api/v2/evolution-chain/\(pokemonID)"
         print(evolutionChainURL)
         guard let url = URL(string: evolutionChainURL) else {
-            completion(nil)
+            completion(.failure(.invalidUrl))
             return
         }
         URLSession.shared.dataTask(with: url) {[weak self] data, _, _ in
@@ -191,15 +192,45 @@ final class CacheManagerImpl: CacheManager {
             guard let data = data,
                   let evolutionChain = try? JSONDecoder().decode(ApiEvolutionChain.self, from: data)
             else {
-                completion(nil)
+                completion(.failure(.parsingError))
                 return
             }
             
             var evolutions: [String] = []
             self.processEvolutionChain(evolutionChain.chain, evolutions: &evolutions)
-            completion(evolutions)
+            
+            self.fetchPokemon(by: pokemonID) { result in
+                switch result {
+                case .success(let pokemon):
+                    pokemon.evolutions = evolutions as NSArray
+                    completion(.success(()))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
         }.resume()
     }
+    
+    private func fetchPokemon(by id: Int, completion: @escaping (Result<Pokemon, CacheError>) -> Void) {
+         backgroundContext.performAndWait {
+             let fetchRequest: NSFetchRequest<Pokemon> = Pokemon.fetchRequest()
+             fetchRequest.predicate = NSPredicate(format: "id == %d", id)
+             fetchRequest.fetchLimit = 1
+             
+             do {
+                 let results = try backgroundContext.fetch(fetchRequest)
+                 if let pokemon = results.first {
+                     completion(.success(pokemon))
+                 } else {
+                     completion(.failure(.noResults))
+                 }
+             } catch {
+                 print("Failed to fetch pokemon: \(error)")
+                 completion(.failure(.cannotLoad))
+             }
+         }
+     }
+    
     private func processEvolutionChain(_ chain: ApiChain, evolutions: inout [String]) {
         evolutions.append(chain.species.name)
         
