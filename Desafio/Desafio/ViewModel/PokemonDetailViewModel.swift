@@ -29,6 +29,13 @@ final class PokemonDetailViewModel {
         }
         return "Unknown"
     }
+    var evolutions: String {
+        if let evolutions = pokemon.evolutions as? NSArray,
+           evolutions.count > 0 {
+            return evolutions.componentsJoined(by: ", ")
+        }
+        return "Unknown"
+    }
     var height: String {
         // Decimeters to meters
         let meters = Double(pokemon.height) / 10.0

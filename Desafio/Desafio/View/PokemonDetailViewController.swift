@@ -77,6 +77,12 @@ final class PokemonDetailViewController: UIViewController {
             stackView.addArrangedSubview(createSeparator())
         }
         
+        if let evolutions = viewModel?.evolutions {
+            let evolutionLabel = createDetailLabel(title: "Evolutions", detail: evolutions)
+            stackView.addArrangedSubview(evolutionLabel)
+            stackView.addArrangedSubview(createSeparator())
+        }
+        
         if let moves = viewModel?.moves {
             let moveLabel = createDetailLabel(title: "Moves", detail: moves)
             stackView.addArrangedSubview(moveLabel)

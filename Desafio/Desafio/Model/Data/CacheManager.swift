@@ -13,6 +13,7 @@ enum CacheError: Error {
     case invalidUrl
     case parsingError
     case invalidImageData
+    case invalidEvolutions
 }
 
 protocol CacheManager {

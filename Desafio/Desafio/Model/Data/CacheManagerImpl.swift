@@ -127,12 +127,29 @@ final class CacheManagerImpl: CacheManager {
                         completion(.failure(.invalidImageData))
                         return
                     }
-                    self.backgroundContext.performAndWait { [weak self] in
+                    
+                    self.fetchEvolutions(
+                        pokemonID: response.id
+                    ) { [weak self] evolutionData in
                         guard let self else { return }
-                        let pokemonEntity = Pokemon(context: self.backgroundContext)
-                        let mapper = DataMapper()
-                        mapper.dataToEntity(response, imageData: imageData, entity: pokemonEntity)
-                        completion(.success(pokemonEntity))
+                        guard let evolutionData else {
+                            completion(.failure(.invalidEvolutions))
+                            return
+                        }
+                        
+                        self.backgroundContext.performAndWait { [weak self] in
+                            guard let self else { return }
+                            let pokemonEntity = Pokemon(context: self.backgroundContext)
+                            let mapper = DataMapper()
+                            mapper.dataToEntity(
+                                response,
+                                evolutions: evolutionData,
+                                imageData: imageData,
+                                entity: pokemonEntity
+                            )
+                            completion(.success(pokemonEntity))
+                        }
+                        
                     }
                 }
             } catch {
@@ -144,6 +161,7 @@ final class CacheManagerImpl: CacheManager {
     
     private func fetchPokemonImage(pokemonID: Int, completion: @escaping (Data?) -> Void) {
         let imageUrlString = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(pokemonID).png"
+        print(imageUrlString)
         guard let url = URL(string: imageUrlString) else {
             completion(nil)
             return
@@ -152,5 +170,34 @@ final class CacheManagerImpl: CacheManager {
         URLSession.shared.dataTask(with: url) { data, _, _ in
             completion(data)
         }.resume()
+    }
+    
+    func fetchEvolutions(pokemonID: Int, completion: @escaping ([String]?) -> Void) {
+        let evolutionChainURL = "https://pokeapi.co/api/v2/evolution-chain/\(pokemonID)"
+        print(evolutionChainURL)
+        guard let url = URL(string: evolutionChainURL) else {
+            completion(nil)
+            return
+        }
+        URLSession.shared.dataTask(with: url) {[weak self] data, _, _ in
+            guard let self else { return }
+            guard let data = data,
+                  let evolutionChain = try? JSONDecoder().decode(ApiEvolutionChain.self, from: data)
+            else {
+                completion(nil)
+                return
+            }
+            
+            var evolutions: [String] = []
+            self.processEvolutionChain(evolutionChain.chain, evolutions: &evolutions)
+            completion(evolutions)
+        }.resume()
+    }
+    private func processEvolutionChain(_ chain: ApiChain, evolutions: inout [String]) {
+        evolutions.append(chain.species.name)
+        
+        for evolution in chain.evolvesTo {
+            processEvolutionChain(evolution, evolutions: &evolutions)
+        }
     }
 }
