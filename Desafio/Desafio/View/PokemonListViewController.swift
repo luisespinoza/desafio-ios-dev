@@ -41,11 +41,17 @@ class PokemonListViewController: UIViewController {
     
     private func bindViewModel() {
         viewModel?.isLoading = { [weak self] isLoading in
-            self?.loadingView.isHidden = !isLoading
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.loadingView.isHidden = !isLoading
+            }
         }
         viewModel?.pokemons = { [weak self] pokemons in
-            self?.pokemonList = pokemons
-            self?.tableView.reloadData()
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.pokemonList = pokemons
+                self.tableView.reloadData()
+            }
         }
     }
     
