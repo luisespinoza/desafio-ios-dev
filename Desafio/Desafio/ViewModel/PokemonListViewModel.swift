@@ -33,27 +33,23 @@ final class PokemonListViewModel {
     }
     
     func didSelectPokemon(at index: Int) {
-        cacheManager.pokemons { [weak self] result in
-            guard let self = self,
-                  case .success(let pokemons) = result,
-                  index < pokemons.count
-            else {
-                return
-            }
-            
-            let selectedPokemon = pokemons[index]
-            self.delegate?.pokemonListViewModel(self, didSelectPokemon: selectedPokemon)
+        if let pokemonList = cacheManager.pokemons(), index < pokemonList.count {
+            let selectedPokemon = pokemonList[index]
+            delegate?.pokemonListViewModel(self, didSelectPokemon: selectedPokemon)
         }
     }
     
+    func cellModelForRow(at index: Int) -> PokemonListCellModel? {
+        if let pokemonList = cacheManager.pokemons(), index < pokemonList.count {
+            let pokemon = pokemonList[index]
+            return PokemonListCellModel(pokemon: pokemon)
+        }
+        return nil
+    }
+    
     private func loadPokemons() {
-        cacheManager.pokemons { [weak self] result in
-            switch result {
-            case .success(let pokemons):
-                self?.pokemons?(pokemons)
-            case .failure(let error):
-                print("Failed to load pokemons: \(error)")
-            }
+        if let pokemonList = cacheManager.pokemons() {
+            pokemons?(pokemonList)
         }
     }
 }

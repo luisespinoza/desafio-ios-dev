@@ -48,17 +48,17 @@ final class CacheManagerImpl: CacheManager {
         }
     }
     
-    func pokemons(onComplete: @escaping (Result<[Pokemon], CacheError>) -> Void) {
+    func pokemons() -> [Pokemon]? {
         let context = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<Pokemon> = Pokemon.fetchRequest()
         fetchRequest.fetchLimit = cacheSize
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
         do {
             let pokemons = try context.fetch(fetchRequest)
-            onComplete(.success(pokemons))
+            return pokemons
         } catch {
             print("Failed to fetch data: \(error)")
-            onComplete(.failure(.cannotLoad))
+            return nil
         }
     }
     

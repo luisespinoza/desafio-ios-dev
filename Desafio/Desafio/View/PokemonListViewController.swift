@@ -98,17 +98,21 @@ extension PokemonListViewController: UITableViewDataSource, UITableViewDelegate 
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "PokemonCell", for: indexPath)
-        let pokemon = pokemonList[indexPath.row]
-        cell.textLabel?.text = pokemon.name
-        if let imageData = pokemon.image {
-            cell.imageView?.image = UIImage(data: imageData)
+        if let pokemonCellModel = viewModel?.cellModelForRow(at: indexPath.row) {
+            setup(cell: cell, with: pokemonCellModel)
+            return cell
         }
-        return cell
+        return UITableViewCell()
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         viewModel?.didSelectPokemon(at: indexPath.row)
+    }
+    
+    private func setup(cell: UITableViewCell, with model: PokemonListCellModel) {
+        cell.textLabel?.text = model.name
+        cell.imageView?.image = model.image
     }
 }
 
