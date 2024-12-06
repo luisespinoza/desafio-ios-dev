@@ -34,6 +34,9 @@ En esta capa se implemento la lógica para obtener los datos de las fuentes remo
 ## Persistencia
 Dado que se requería guardar cientos de elementos y con imágenes asociadas, se descartó usar `UserDefaults` ya que el objetivo de ese sistema es guardar configuraciones de usuario. Para evitar la gestión de archivos, se optó por usar Core Data (además, por defecto Xcode provee código boilerplate para utilizarlo).
 
+## Estrategia de cache
+Dado que pokeapi solicita reducir la frecuencia de requests, se decidio realizar el caché de forma secuencial, es decir, un pokemon tras otro. Para cachear cada pokemon, primero se descarga la lista de los primeros 151 pokemones, luego por cada pokemon, se consultan los detalles, imagen, especie y cadena de evolución para completar los datos requeridos en la especificación de la tarea.
+
 ## Test Unitarios
 Al principio comencé a implementar la aplicación usando TDD, sin embargo, dado el tiempo limitado (principalmente por mi trabajo actual), decidí continuar sin tests para implementar la mayoría de lo requerido.
 
