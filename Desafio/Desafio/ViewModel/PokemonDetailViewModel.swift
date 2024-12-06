@@ -15,7 +15,13 @@ final class PokemonDetailViewModel {
         }
         return nil
     }
-    var type: String { pokemon.type ?? "Unknown" }
+    var type: String {
+        if let types = pokemon.types as? NSArray,
+           types.count > 0 {
+            return types.componentsJoined(by: ", ")
+        }
+        return "Unknown"
+    }
     var height: String { "\(pokemon.height) m" }
     var weight: String { "\(pokemon.weight) kg" }
     

@@ -18,6 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        DataMapper.registerTransformers()
         let cacheManager = CacheManagerImpl(
             persistentContainer: persistentContainer,
             cacheSize: pokemonCacheSize
