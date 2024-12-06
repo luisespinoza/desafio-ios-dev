@@ -36,7 +36,7 @@ final class PokemonDetailViewModel {
     }
     
     var weight: String {
-        // Decigrams to hectograms
+        // Hectograms to kilograms
         let kilograms = Double(pokemon.weight) / 10.0
         return String(format: "%.1f kg", kilograms)
     }
