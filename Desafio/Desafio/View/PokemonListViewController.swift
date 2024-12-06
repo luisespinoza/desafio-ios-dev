@@ -8,7 +8,11 @@
 import UIKit
 
 class PokemonListViewController: UIViewController {
-    var viewModel: PokemonListViewModel?
+    var viewModel: PokemonListViewModel? {
+        didSet {
+            viewModel?.delegate = self
+        }
+    }
     
     private var pokemonList: [Pokemon] = []
     
@@ -95,5 +99,19 @@ extension PokemonListViewController: UITableViewDataSource, UITableViewDelegate 
             cell.imageView?.image = UIImage(data: imageData)
         }
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        viewModel?.didSelectPokemon(at: indexPath.row)
+    }
+}
+
+extension PokemonListViewController: PokemonListViewModelDelegate {
+    func pokemonListViewModel(_ viewModel: PokemonListViewModel, didSelectPokemon pokemon: Pokemon) {
+        let detailViewModel = PokemonDetailViewModel(pokemon: pokemon)
+        let detailViewController = PokemonDetailViewController()
+        detailViewController.viewModel = detailViewModel
+        navigationController?.pushViewController(detailViewController, animated: true)
     }
 }
