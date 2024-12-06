@@ -54,4 +54,8 @@ class MockDataManager: CacheManager {
             }
         }
     }
+    
+    func pokemons() -> [Desafio.Pokemon]? {
+        return nil
+    }
 }

@@ -106,12 +106,10 @@ final class CacheManagerImpl: CacheManager {
     }
     
     private func fetchPokemon(from url: String, completion: @escaping (Result<Void, CacheError>) -> Void) {
-        
         guard let url = URL(string: url) else {
             completion(.failure(.invalidUrl))
             return
         }
-        let pokemonDispatchGroup = DispatchGroup()
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let self else { return }
@@ -132,6 +130,7 @@ final class CacheManagerImpl: CacheManager {
                     )
                 }
                 
+                let pokemonDispatchGroup = DispatchGroup()
                 pokemonDispatchGroup.notify(queue: .main) {
                     completion(.success(()))
                 }

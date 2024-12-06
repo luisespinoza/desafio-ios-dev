@@ -21,7 +21,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelChecksIfCacheIsReady() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady)
-        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(cacheManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -33,7 +33,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelCallsToCachePokemons() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady)
-        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(cacheManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -45,7 +45,7 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelDoesNotCallToCachePokemons() throws {
         // Given
         let dataManager = MockDataManager(state: .ready)
-        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(cacheManager: dataManager)
         
         // When
         pokemonsViewModel.onViewDidLoad()
@@ -57,39 +57,51 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelIsLoadingWhenCache() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady)
-        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(cacheManager: dataManager)
+        var isLoading = false
+        pokemonsViewModel.isLoading = { result in
+            isLoading = result
+        }
         
         // When
         pokemonsViewModel.onViewDidLoad()
         
         // Then
-        XCTAssertTrue(pokemonsViewModel.isLoading)
+        XCTAssertTrue(isLoading)
     }
     
     func testPokemonsViewModelNotLoadingWhenReady() throws {
         // Given
         let dataManager = MockDataManager(state: .ready)
-        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(cacheManager: dataManager)
+        var isLoading = true
+        pokemonsViewModel.isLoading = { result in
+            isLoading = result
+        }
         
         // When
         pokemonsViewModel.onViewDidLoad()
         
         // Then
-        XCTAssertFalse(pokemonsViewModel.isLoading)
+        XCTAssertFalse(isLoading)
     }
     
     func testPokemonsViewModelEndsLoadingOnSuccess() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady, result: .success)
-        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(cacheManager: dataManager)
         let expectation = self.expectation(description: "Loading completes")
+        var isLoading = true
+        pokemonsViewModel.isLoading = { result in
+            isLoading = result
+        }
         
         // When
         pokemonsViewModel.onViewDidLoad()
         
         // Then
         DispatchQueue.main.async {
-            XCTAssertFalse(pokemonsViewModel.isLoading)
+            XCTAssertFalse(isLoading)
             expectation.fulfill()
         }
         waitForExpectations(timeout: 2)
@@ -98,15 +110,19 @@ final class DesafioTests: XCTestCase {
     func testPokemonsViewModelEndsLoadingOnFailure() throws {
         // Given
         let dataManager = MockDataManager(state: .notReady, result: .failure)
-        let pokemonsViewModel = PokemonListViewModel(dataManager: dataManager)
+        let pokemonsViewModel = PokemonListViewModel(cacheManager: dataManager)
         let expectation = self.expectation(description: "Loading completes")
+        var isLoading = true
+        pokemonsViewModel.isLoading = { result in
+            isLoading = result
+        }
         
         // When
         pokemonsViewModel.onViewDidLoad()
         
         // Then
         DispatchQueue.main.async {
-            XCTAssertFalse(pokemonsViewModel.isLoading)
+            XCTAssertFalse(isLoading)
             expectation.fulfill()
         }
         waitForExpectations(timeout: 2)
