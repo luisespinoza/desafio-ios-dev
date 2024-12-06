@@ -52,6 +52,7 @@ final class CacheManagerImpl: CacheManager {
         let context = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<Pokemon> = Pokemon.fetchRequest()
         fetchRequest.fetchLimit = cacheSize
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
         do {
             let pokemons = try context.fetch(fetchRequest)
             onComplete(.success(pokemons))
