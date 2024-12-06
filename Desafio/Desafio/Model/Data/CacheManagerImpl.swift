@@ -18,25 +18,12 @@ final class CacheManagerImpl: CacheManager {
         return context
     }()
     
-    private var viewContext: NSManagedObjectContext {
-        persistentContainer.viewContext
-    }
-    
     init(
         persistentContainer: NSPersistentContainer,
         cacheSize: Int
     ) {
         self.persistentContainer = persistentContainer
         self.cacheSize = cacheSize
-        configureContexts()
-    }
-    
-    func configureContexts() {
-        viewContext.automaticallyMergesChangesFromParent = true
-        backgroundContext.automaticallyMergesChangesFromParent = true
-        
-        backgroundContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
-        viewContext.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
     }
 
     func isReady() -> Bool {
@@ -103,7 +90,7 @@ final class CacheManagerImpl: CacheManager {
     private func fetchPokemons(from list: [ApiPokemonListItem], index: Int = 0, completion: @escaping (Result<Void, CacheError>) -> Void) {
         guard index < list.count else {
             do {
-                try backgroundContext.save()
+                try self.backgroundContext.save()
                 print("Saved data")
                 completion(.success(()))
             } catch {
@@ -232,7 +219,7 @@ final class CacheManagerImpl: CacheManager {
     }
     
     private func fetchPokemon(by id: Int, completion: @escaping (Result<Pokemon, CacheError>) -> Void) {
-         backgroundContext.perform {
+         backgroundContext.performAndWait {
              let fetchRequest: NSFetchRequest<Pokemon> = Pokemon.fetchRequest()
              fetchRequest.predicate = NSPredicate(format: "id == %d", id)
              fetchRequest.fetchLimit = 1
