@@ -31,6 +31,7 @@ class PokemonListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupView()
         setupNavigationBar()
         setupTableView()
         setupLoadingView()
@@ -46,6 +47,10 @@ class PokemonListViewController: UIViewController {
             self?.pokemonList = pokemons
             self?.tableView.reloadData()
         }
+    }
+    
+    private func setupView() {
+        view.backgroundColor = .white
     }
     
     private func setupNavigationBar() {
