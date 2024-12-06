@@ -103,13 +103,15 @@ final class CacheManagerImpl: CacheManager {
     }
     
     private func fetchPokemon(from url: String, completion: @escaping (Result<Pokemon, CacheError>) -> Void) {
-        let mapper = DataMapper()
+        
         guard let url = URL(string: url) else {
             completion(.failure(.invalidUrl))
             return
         }
+        
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let self else { return }
+            
             guard let data = data else {
                 completion(.failure(.noResults))
                 return
@@ -117,13 +119,38 @@ final class CacheManagerImpl: CacheManager {
             
             do {
                 let response = try JSONDecoder().decode(PokemonDetailResponse.self, from: data)
-                let pokemonEntity = Pokemon(context: self.backgroundContext)
-                mapper.dataToEntity(response, entity: pokemonEntity)
-                completion(.success(pokemonEntity))
+                self.fetchPokemonImage(
+                    pokemonID: response.id
+                ) { [weak self] imageData in
+                    guard let self else { return }
+                    guard let imageData else {
+                        completion(.failure(.invalidImageData))
+                        return
+                    }
+                    self.backgroundContext.performAndWait { [weak self] in
+                        guard let self else { return }
+                        let pokemonEntity = Pokemon(context: self.backgroundContext)
+                        let mapper = DataMapper()
+                        mapper.dataToEntity(response, imageData: imageData, entity: pokemonEntity)
+                        completion(.success(pokemonEntity))
+                    }
+                }
             } catch {
                 print("Failed to decode data: \(error)")
                 completion(.failure(.parsingError))
             }
+        }.resume()
+    }
+    
+    private func fetchPokemonImage(pokemonID: Int, completion: @escaping (Data?) -> Void) {
+        let imageUrlString = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(pokemonID).png"
+        guard let url = URL(string: imageUrlString) else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            completion(data)
         }.resume()
     }
 }

@@ -91,6 +91,9 @@ extension PokemonListViewController: UITableViewDataSource, UITableViewDelegate 
         let cell = tableView.dequeueReusableCell(withIdentifier: "PokemonCell", for: indexPath)
         let pokemon = pokemonList[indexPath.row]
         cell.textLabel?.text = pokemon.name
+        if let imageData = pokemon.image {
+            cell.imageView?.image = UIImage(data: imageData)
+        }
         return cell
     }
 }
