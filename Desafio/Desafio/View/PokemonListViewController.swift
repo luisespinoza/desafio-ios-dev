@@ -13,7 +13,7 @@ class PokemonListViewController: UIViewController {
     private var pokemonList: [Pokemon] = []
     
     private lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: view.bounds)
+        let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
@@ -27,6 +27,7 @@ class PokemonListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavigationBar()
         setupTableView()
         setupLoadingView()
         bindViewModel()
@@ -43,13 +44,25 @@ class PokemonListViewController: UIViewController {
         }
     }
     
+    private func setupNavigationBar() {
+        title =  "Pokémon List"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+    }
+    
     private func setupLoadingView() {
         view.addSubview(loadingView)
         NSLayoutConstraint.activate([
             loadingView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            loadingView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            loadingView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            loadingView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            loadingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            loadingView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            loadingView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
