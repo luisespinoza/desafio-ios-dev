@@ -8,7 +8,6 @@
 import CoreData
 
 final class CacheManagerImpl: CacheManager {
-    private let fetchDelay: TimeInterval = 0.2
     private let persistentContainer: NSPersistentContainer
     private let cacheSize: Int
     private var cachedPokemons: [Pokemon]?
@@ -69,7 +68,10 @@ final class CacheManagerImpl: CacheManager {
     }
     
     private func fetchPokemonList(completion: @escaping (ApiPokemonListResponse?) -> Void) {
-        let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=\(cacheSize)")!
+        guard let url = ApiPokeURLBuilder.url(for: .pokemonList(limit: cacheSize)) else {
+            completion(nil)
+            return
+        }
         URLSession.shared.dataTask(with: url) { data, _, _ in
             guard let data = data else {
                 completion(nil)
@@ -158,8 +160,7 @@ final class CacheManagerImpl: CacheManager {
     }
     
     private func fetchPokemonImage(pokemonID: Int, completion: @escaping (Result<Void, CacheError>) -> Void) {
-        let imageUrlString = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(pokemonID).png"
-        guard let url = URL(string: imageUrlString) else {
+        guard let url = ApiPokeURLBuilder.url(for: .pokemonImage(id: pokemonID)) else {
             completion(.failure(.invalidUrl))
             return
         }
