@@ -68,7 +68,7 @@ final class CacheManagerImpl: CacheManager {
         }
     }
     
-    private func fetchPokemonList(completion: @escaping (PokemonListResponse?) -> Void) {
+    private func fetchPokemonList(completion: @escaping (ApiPokemonListResponse?) -> Void) {
         let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=\(cacheSize)")!
         URLSession.shared.dataTask(with: url) { data, _, _ in
             guard let data = data else {
@@ -77,7 +77,7 @@ final class CacheManagerImpl: CacheManager {
             }
             
             do {
-                let response = try JSONDecoder().decode(PokemonListResponse.self, from: data)
+                let response = try JSONDecoder().decode(ApiPokemonListResponse.self, from: data)
                 completion(response)
             } catch {
                 print("Failed to decode data: \(error)")
@@ -87,7 +87,7 @@ final class CacheManagerImpl: CacheManager {
         }.resume()
     }
     
-    private func fetchPokemons(from list: [PokemonListItem], completion: @escaping (Result<Void, CacheError>) -> Void) {
+    private func fetchPokemons(from list: [ApiPokemonListItem], completion: @escaping (Result<Void, CacheError>) -> Void) {
         let pokemonListDispatchGroup = DispatchGroup()
         for (index, pokemonData) in list.enumerated() {
             let delay = Double(index) * fetchDelay
@@ -128,7 +128,7 @@ final class CacheManagerImpl: CacheManager {
             }
             
             do {
-                let response = try JSONDecoder().decode(PokemonDetailResponse.self, from: data)
+                let response = try JSONDecoder().decode(ApiPokemonDetailResponse.self, from: data)
                 self.backgroundContext.performAndWait { [weak self] in
                     guard let self else { return }
                     let pokemonEntity = Pokemon(context: self.backgroundContext)

@@ -15,7 +15,7 @@ final class DataMapper {
         )
     }
     
-    func dataToEntity(_ value: PokemonDetailResponse, entity: Pokemon) {
+    func dataToEntity(_ value: ApiPokemonDetailResponse, entity: Pokemon) {
         entity.id = Int16(value.id)
         entity.name = value.name
         entity.types = value.types.map { $0.type.name } as NSArray
