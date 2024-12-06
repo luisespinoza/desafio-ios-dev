@@ -10,7 +10,7 @@ struct PokemonDetailResponse: Codable {
     let name: String
     let height: Int
     let weight: Int
-//    let abilities: [Ability]
+    let moves: [ApiMoveListItem]
     let types: [ApiPokemonTypeListItem]
 //    let sprites: Sprites
 }

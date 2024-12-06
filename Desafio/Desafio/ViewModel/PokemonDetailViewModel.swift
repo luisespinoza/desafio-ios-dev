@@ -8,22 +8,38 @@ import UIKit
 
 final class PokemonDetailViewModel {
     private let pokemon: Pokemon
-    var name: String { pokemon.name ?? "Unknown" }
+    var name: String { pokemon.name?.capitalized ?? "Unknown" }
     var image: UIImage? {
         if let imageData = pokemon.image {
             return UIImage(data: imageData)
         }
         return nil
     }
-    var type: String {
+    var types: String {
         if let types = pokemon.types as? NSArray,
            types.count > 0 {
             return types.componentsJoined(by: ", ")
         }
         return "Unknown"
     }
-    var height: String { "\(pokemon.height) m" }
-    var weight: String { "\(pokemon.weight) kg" }
+    var moves: String {
+        if let moves = pokemon.moves as? NSArray,
+           moves.count > 0 {
+            return moves.componentsJoined(by: ", ")
+        }
+        return "Unknown"
+    }
+    var height: String {
+        // Decimeters to meters
+        let meters = Double(pokemon.height) / 10.0
+        return String(format: "%.1f m", meters)
+    }
+    
+    var weight: String {
+        // Decigrams to hectograms
+        let kilograms = Double(pokemon.weight) / 10.0
+        return String(format: "%.1f kg", kilograms)
+    }
     
     init(pokemon: Pokemon) {
         self.pokemon = pokemon

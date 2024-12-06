@@ -59,12 +59,6 @@ final class PokemonDetailViewController: UIViewController {
     }
     
     private func setupStackViewContent() {
-        if let type = viewModel?.type {
-            let typeLabel = createDetailLabel(title: "Type", detail: type)
-            stackView.addArrangedSubview(typeLabel)
-            stackView.addArrangedSubview(createSeparator())
-        }
-
         if let height = viewModel?.height {
             let heightLabel = createDetailLabel(title: "Height", detail: height)
             stackView.addArrangedSubview(heightLabel)
@@ -74,6 +68,18 @@ final class PokemonDetailViewController: UIViewController {
         if let weight = viewModel?.weight {
             let weightLabel = createDetailLabel(title: "Weight", detail: weight)
             stackView.addArrangedSubview(weightLabel)
+            stackView.addArrangedSubview(createSeparator())
+        }
+        
+        if let types = viewModel?.types {
+            let typeLabel = createDetailLabel(title: "Types", detail: types)
+            stackView.addArrangedSubview(typeLabel)
+            stackView.addArrangedSubview(createSeparator())
+        }
+        
+        if let moves = viewModel?.moves {
+            let moveLabel = createDetailLabel(title: "Moves", detail: moves)
+            stackView.addArrangedSubview(moveLabel)
             stackView.addArrangedSubview(createSeparator())
         }
     }
