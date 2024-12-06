@@ -21,7 +21,8 @@ final class PokemonListViewModel {
     
     func onViewDidLoad() {
         if cacheManager.isReady() {
-            self.loadPokemons()
+            isLoading?(false)
+            loadPokemons()
         } else {
             isLoading?(true)
             cacheManager.cache { [weak self] _ in
